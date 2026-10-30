@@ -1,3 +1,5 @@
+from pdb import run
+
 from models.customnet import CustomNet
 from torch import nn
 import torch
@@ -9,7 +11,7 @@ lr = 0.01  # Learning rate
 
 # Initialize Weights & Biases (wandb) for experiment tracking
 
-wandb.init(project = 'aml-lab3')
+run = wandb.init(project = 'aml-lab3')
 config = wandb.config
 config.learning_rate = lr
 
@@ -41,6 +43,13 @@ def train(epoch, model, train_loader, criterion, optimizer):
         total += targets.size(0)
         correct += predicted.eq(targets).sum().item()
 
+    # save model weights and log to wandb
+    torch.save(model.state_dict(), "model.pth")
+    artifact = wandb.Artifact("cnn-weights", type="model")
+    artifact.add_file("model.pth")
+    run.log_artifact(artifact)
+
+    # compute average loss and accuracy for the epoch
     train_loss = running_loss / len(train_loader)
     train_accuracy = 100. * correct / total
     wandb.log({'train_loss': train_loss, 'train_accuracy': train_accuracy})
