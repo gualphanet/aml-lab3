@@ -3,6 +3,15 @@ from torch import nn
 import torch
 from torchvision.datasets import ImageFolder
 import torchvision.transforms as T
+import wandb
+
+lr = 0.01  # Learning rate
+
+# Initialize Weights & Biases (wandb) for experiment tracking
+
+wandb.init(project = 'aml-lab3')
+config = wandb.config
+config.learning_rate = lr
 
 
 def train(epoch, model, train_loader, criterion, optimizer):
@@ -34,10 +43,12 @@ def train(epoch, model, train_loader, criterion, optimizer):
 
     train_loss = running_loss / len(train_loader)
     train_accuracy = 100. * correct / total
+    wandb.log({'train_loss': train_loss, 'train_accuracy': train_accuracy})
     print(f'Train Epoch: {epoch} Loss: {train_loss:.6f} Acc: {train_accuracy:.2f}%')
 
 
 
+# Define the data transformations for training and validation
 
 transform = T.Compose([
     T.Resize((224, 224)),  # Resize to fit the input dimensions of the network
@@ -45,18 +56,25 @@ transform = T.Compose([
     T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
 ])
 
+
+# Load the Tiny ImageNet dataset
+
 tiny_imagenet_dataset_train = ImageFolder(root='dataset/tiny-imagenet/tiny-imagenet-200/train', transform=transform)
 tiny_imagenet_dataset_val = ImageFolder(root='dataset/tiny-imagenet/tiny-imagenet-200/val', transform=transform)
 
+
+# Create data loaders for training and validation
 
 train_loader = torch.utils.data.DataLoader(tiny_imagenet_dataset_train, batch_size=32, shuffle=True, num_workers=8)
 val_loader = torch.utils.data.DataLoader(tiny_imagenet_dataset_val, batch_size=32, shuffle=False)
 
 
+# Define the model, loss function, and optimizer
 
 model = CustomNet().cuda()
 criterion = nn.CrossEntropyLoss()
-optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
+optimizer = torch.optim.SGD(model.parameters(), lr, momentum=0.9)
+
 
 # Run the training process for {num_epochs} epochs
 num_epochs = 10

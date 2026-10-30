@@ -1,5 +1,6 @@
 import torch
 from train import model, val_loader, criterion
+import wandb
 
 # Validation loop
 def validate(model, val_loader, criterion):
@@ -24,6 +25,8 @@ def validate(model, val_loader, criterion):
 
     val_loss = val_loss / len(val_loader)
     val_accuracy = 100. * correct / total
+
+    wandb.log({'val_loss': val_loss, 'val_accuracy': val_accuracy})
 
     print(f'Validation Loss: {val_loss:.6f} Acc: {val_accuracy:.2f}%')
     return val_accuracy
